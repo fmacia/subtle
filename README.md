@@ -10,4 +10,4 @@ Uso
  
 $ chmod +x subtle.py
 
-$ ./subtle.py <nombre de la serie>
+$ ./subtle.py [nombre de la serie]
