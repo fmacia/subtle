@@ -1,0 +1,2 @@
+V 01. Implementación inicial
+V 0.2 Creada la estructura de archivos, código refactorizado, arreglo de pequeños bugs, añadido soporte para varios archivos a la vez
