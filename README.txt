@@ -19,7 +19,7 @@ $ pip install subtle
 A partir de las fuentes
 ------------------------
 
-Se necesitan tener instalados los siguientes módulos de python: 'nose', 'beautifulsoup4', 'guessit'
+Se necesitan tener instalados los siguientes módulos de python: 'beautifulsoup4', 'guessit'
 
 (dentro de la carpeta descomprimida)
 $ python2 setup.py install
