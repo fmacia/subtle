@@ -41,6 +41,14 @@ Novedades del proyecto: <a href="http://digitalwaste.wordpress.com">http://digit
 
 <h1>Instalación</h1>
 
+<h2>Instalador .exe (solo Windows)</h2>
+<p>Descargar desde <a href="https://pypi.python.org/packages/any/s/subtle/subtle-0.3.5.linux-i686.exe#md5=75cf600374206fd6191121cece3c809e">aquí</a>
+  Ejecutar instalador (ir pulsando siguiente, no hay nada que modificar aquí) y se creará un acceso directo en el escritorio.
+  Arrastrar el vídeo del que se quieren los subtítulos al acceso directo y listo :).
+  
+  Posibles problemas: En windows XP debería funcionar todo bien. En windows 7 y 8 es posible que en el instalador salten errores. En ese caso agradecería feedback (<a href="mailto:fjmaciaespin@gmail.com">fjmaciaespin@gmail.com</a>).
+</p>
+
 <h2>Con pip (método preferido)</h2>
 
 <p>pip instalará automáticamente las dependencias necesarias</p>
@@ -58,7 +66,31 @@ $ python2 setup.py install</p>
 
 <p>Una vez instalado, el programa se usa así::</p>
 
-<pre><code>subtle video1 [video2...]
+subtle [opciones] video1 [video2 ...]
+
+positional arguments:
+  videos
+
+optional arguments:
+  -v, --verbose         Ver mensajes de depuración
+  -q, --quiet           No mostrar nada por pantalla
+  -h, --help            Muestra este mensaje de ayuda
+  -i, --info            Mostrar la información del vídeo y salir
+  -f, --force           Forzar sobreescritura de subtítulos ya existentes
+  -t, --title           Añade el título al nombre del archivo de vídeo si no
+                        lo tiene
+  -c, --check           Solo comprueba la existencia del subtítulo sin
+                        descargarlo
+  -w WEB, --web WEB     Especificar directamente la web en la que buscar
+  -r RECURSIVE, --recursive RECURSIVE
+                        Descargar subtítulos para los vídeos de subcarpetas
+  -l LANGUAGE, --language LANGUAGE
+                        Especificar el idioma -> es: Español de España, lat:
+                        Español de Latinoamérica, en: Inglés
+  -V, --version         Muestra la versión del programa
+  -F FOLDER, --folder FOLDER
+                        Especificar la ruta donde se descargarán los
+                        subtítulos
 </code></pre>
       </section>
     </div>
