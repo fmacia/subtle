@@ -46,7 +46,7 @@ config = dict(
     include_package_data=True,
     name='subtle',
     license='GPL v3',
-    long_description= open('README.txt').read(),
+    long_description= open('README.rst').read(),
     platforms= ['UNIX', 'Windows'],
     classifiers= 
         [
@@ -63,6 +63,7 @@ config = dict(
             'Topic :: Software Development :: Libraries :: Python Modules',
             
         ],
+    scripts=['postinstalacion.py']
     )
 
 setup(**config)

@@ -20,13 +20,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import unicode_literals
 from bs4 import BeautifulSoup
 import os
 import re
-import urllib2
 import argparse
 import sys
 import guessit
+try:
+    #python2
+    import urllib2
+    python_vers = 2
+except:
+    #python3
+    import urllib.request, urllib.error, urllib.parse
+    python_vers = 3
 
 class Video:
     #TODO: documentar errorlevels
@@ -44,8 +52,8 @@ class Video:
         self.extension = ''
         self.version = ''
         self.serie = ''
-        self.temporada = ''
-        self.episodio = ''
+        self.temporada = None
+        self.episodio = None
         self.nombre_episodio = ''
         self.enlace_sub = ''
         self.codec = '' 
@@ -59,9 +67,8 @@ class Video:
         """
         Función que se encarga de extraer los datos del archivo e insertarlos en las variables
         """
-        #relativo al archivo
-        #TODO: cambiar barras / por os.path.join
-        self.ruta = os.path.dirname(self.archivo) + '/'
+        #datos relativos al archivo
+        self.ruta = os.path.dirname(self.archivo)
         self.nombre_video, self.extension = os.path.splitext(os.path.basename(self.archivo))
 
         #uso del módulo guessit para sacar los datos a partir del nombre del archivo
@@ -80,26 +87,27 @@ class Video:
             #idioma
             return self.reconocer_idioma(self.args.language)
         else:
-            print('No se ha podido extraer los datos de "%s"\n' % self.archivo)
+            self.notificar('No se ha podido extraer los datos de "%s"\n' % self.archivo)
             return 1
         
     def reconocer_idioma(self, idioma):
         #TODO: habrá que hacer un reconocimiento de idioma por cada página
+        #TODO: añadir idiomas
         idiomas = {
-                   'es' : u'España',
-                   'lat' : u'Latinoamérica',
-                   'en' : u'English'
+                   'es' : 'España',
+                   'lat' : 'Latinoamérica',
+                   'en' : 'English'
                    }
         if idioma:
             if idioma.lower() in idiomas:
                 self.idioma = idiomas[idioma.lower()]
                 return 0
             else:
-                print('No se ha podido detectar el idioma')
+                self.notificar('No se ha podido detectar el idioma')
                 return 1
         #valor por defecto si no se especifica idioma
         else:
-            self.idioma = u'España'
+            self.idioma = 'España'
             return 0
         
     def descargar_sub_addic7ed(self):
@@ -109,13 +117,13 @@ class Video:
         sitio = 'http://www.addic7ed.com'
         #sacar el id del idioma elegido
         id_idioma = ''
-        if self.idioma == u'España':
+        if self.idioma == 'España':
             id_idioma = '|5|'
         elif self.idioma == 'English':
             id_idioma = '|1|'
         
         if id_idioma == '':
-            print('No se ha podido detectar el idioma')
+            self.notificar('No se ha podido detectar el idioma')
             return 1
 
         serie_sin_espacios = self.serie.replace(' ', '_')
@@ -125,7 +133,13 @@ class Video:
         html_busqueda = self.abrir_url(url_busqueda)
         if html_busqueda:
             sopa_busqueda = BeautifulSoup(html_busqueda)
-            id_serie = re.sub('/show/', '' , sopa_busqueda.find('span', {'class' : 'titulo'}).a['href'])
+            titulo_web = sopa_busqueda.find('span', {'class' : 'titulo'})
+            if titulo_web:
+                id_serie = re.sub('/show/', '' , titulo_web.a['href'])
+            else:
+                self.notificar('No se ha encontrado el vídeo en %s' % sitio, False)
+                return 1
+
             #buscar enlace de la versión
             url_version = '%s/ajax_loadShow.php?show=%s&season=%s&langs=%s' % (sitio, id_serie, self.temporada, id_idioma)
             html_version = self.abrir_url(url_version)
@@ -162,7 +176,7 @@ class Video:
                         i = i + 1
                     if coincidencia == True:                
                         return self.guardar_archivo(sitio)
-        print('No se han encontrado subtítulos')
+        self.notificar('No se han encontrado subtítulos en %s' % sitio, False)
         return 1
     
     def descargar_sub_subtitulos_es(self):
@@ -179,7 +193,13 @@ class Video:
         html_series = self.abrir_url(url_series)
         if html_series:
             sopa_series = BeautifulSoup(html_series)
-            self.serie = sopa_series.find('a', text = re.compile(self.serie)).text.encode('ascii', 'ignore')
+            serie_web = sopa_series.find('a', text = re.compile(self.serie))
+            #Según dani hay que hacer más tolerante la búsqueda de la serie
+            if serie_web:
+                self.serie = serie_web.text.encode('ascii', 'ignore')
+            else:
+                self.notificar('No se ha encontrado el vídeo en %s' % sitio, False)
+                return 1
             
         serie_sin_espacios = self.serie.replace(' ', '-')
 
@@ -207,7 +227,7 @@ class Video:
                                     #sacar enlace
                                     self.enlace_sub = lengua.next_sibling.next_sibling.a['href']                       
                                     return self.guardar_archivo(sitio)
-        print('No se han encontrado subtítulos')
+        self.notificar('No se han encontrado subtítulos en %s' % sitio, False)
         return 1
     
     def comprobar_version(self, version_web):
@@ -237,13 +257,13 @@ class Video:
         
         #si solo se quiere comprobar
         if self.args.check:
-            print('Subtítulos encontrados en %s' % sitio)
+            self.notificar('Subtítulos encontrados en %s' % sitio)
             return 0
         
         #comprobar la existencia del archivo de subtítulos si no se especifica la opción -f
         if not self.args.force:
             if os.path.exists(os.path.join(self.ruta, self.nombre_video + '.srt')):
-                print('Ya existe un archivo de subtítulos. No se reemplaza')
+                self.notificar('Ya existe un archivo de subtítulos. No se reemplaza')
                 return 2
             
         #cambiar el título del archivo si se especifica la opción -t
@@ -264,9 +284,9 @@ class Video:
                 try:
                     os.rename(self.archivo, os.path.join(self.ruta, nombre_nuevo))
                     self.nombre_video = nombre_nuevo
-                except IOError, e:
+                except IOError as e:
                     if e.errno == 13:
-                        print('No se ha podido renombrar el archivo original. Permiso denegado')
+                        self.notificar('No se ha podido renombrar el archivo original. Permiso denegado')
                     return 2
 
         #descargar el subtítulo
@@ -276,37 +296,69 @@ class Video:
         subs = self.abrir_url(request)
         if subs:
             try:
-                #TODO: cambiar por os.path.join()
                 #OPCION: -F - Elegir la ruta de descarga
                 
                 if self.args.folder:
                     ruta_subs = self.args.folder
                 else:
                     ruta_subs = self.ruta
-                print ruta_subs
                 
                 #with open('%s%s.srt' % (self.ruta, self.nombre_video), 'wb') as archivo:
                 with open(os.path.join(ruta_subs, '%s.srt' % self.nombre_video), 'wb') as archivo:
                     archivo.write(subs)
-                    print(u'Descargando subtítulos para %s %dx%d de %s' % (self.serie, self.temporada, self.episodio, sitio))
+                    #self.notificar(u'Descargando subtítulos para %s %dx%d de %s' % (self.serie, self.temporada, self.episodio, sitio))
+                    self.notificar('Descargando subtítulos de %s' % sitio)
                     return 0
-            except IOError, e:
+            except IOError as e:
                 if e.errno == 13:
-                    print("No se ha podido crear el archivo de subtítulos. Permiso denegado")
+                    self.notificar("No se ha podido crear el archivo de subtítulos. Permiso denegado")
                 return 2
-        print('No se han encontrado subtítulos')
+        self.notificar('No se han encontrado subtítulos en %s' % sitio, False)
         return 1
+    
+    def datos(self):
+        """
+        Devuelve una descripción simple del vídeo
+        """
+        if self.tipo == 'episode':
+            return '%s %dx%d' % (self.serie, self.temporada, self.episodio)
+        else:
+            return 'TO-DO'
+        
+
+    def notificar(self, mensaje, burbuja = True, titulo = None):
+        if not self.args.quiet:
+            if titulo is None:
+                titulo = self.nombre_video + self.extension
+    
+            if burbuja or self.args.verbose:
+                #burbuja de notificación
+                from distutils.spawn import find_executable
+                
+                notificador = 'notify-send'
+                #comprobar que se pueden mandar notificaciones
+                if find_executable(notificador) is not None:
+                    import subprocess
+                    ruta_icono = '/home/frans/Programación/Python/Subtle/icono_subtle.ico'
+                    subprocess.Popen([notificador, '-i', ruta_icono, titulo, mensaje])
+            
+            #mostrar texto por consola
+            print(mensaje)
         
     def abrir_url(self, url):
         """
         Función que lee el contenido de una url
         """
         #TODO comoprobar que devuelve el read de una url vacía
+        #TODO ver que pasa cuando no hay inet
         try:
-            html = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+            if python_vers == 2:
+                html = urllib2.urlopen(url).read()
+            else:
+                html = urllib.request.urlopen(url).read()
+        except urllib2.HTTPError as e:
             if e.code == 404:
-                print(u'No existe la página que se ha buscado')
+                self.notificar('No existe la página que se ha buscado')
             return False
         return html
 
@@ -314,16 +366,13 @@ class Video:
         return self.__unicode__()
     
     def __unicode__(self):
-        #TODO: hecho apaño guarro para que permita imprimir , intentar hacerlo bien (que todo sea unicode por ejemplo)
-        return ("%s\nDatos del vídeo\n%s\n"
-               "Ruta del archivo: %s\nNombre del vídeo: %s\nExtensión: %s\n"
+        return ("Ruta del archivo: %s\nNombre del vídeo: %s\nExtensión: %s\n"
                "Serie: %s\nTemporada: %s\nEpisodio: %s\nVersión: %s\nCódec: %s\nNombre del episodio: %s\n"
-               "Formato: %s\nTamaño: %s\nTipo: %s\n") % (
-                                               '*' * 30, '*' * 30,
+               "Formato: %s\nTamaño pantalla: %s\nTipo: %s\n") % (
                                                self.ruta, self.nombre_video,
-                                               self.extension, str(self.serie), 
+                                               self.extension, self.serie, 
                                                self.temporada, self.episodio,
-                                               str(self.version), str(self.codec),
-                                               str(self.nombre_episodio), 
-                                               str(self.formato), str(self.tamano),
-                                               str(self.tipo))
+                                               self.version, self.codec,
+                                               self.nombre_episodio, 
+                                               self.formato, self.tamano,
+                                               self.tipo)

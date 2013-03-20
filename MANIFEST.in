@@ -1,3 +1,5 @@
 include *.txt
+include *.rst
+recursive-include subtle *.ico
 recursive-include guessit *.txt
 prune tests

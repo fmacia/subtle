@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from __future__ import unicode_literals
 import sys
 import argparse
 from core import Video
+from utils import *
 
 def main():
     """
@@ -34,12 +36,12 @@ def main():
         description = 'Descarga archivos de subtítulos para series',
         usage = 'Uso: %(prog)s [opciones] video1 [video2 ...]',
         add_help = False)
-#    parser.add_argument('-v', '--verbose', action='store_true',
-#                      help = 'Ver mensajes de depuración')
-#    parser.add_argument('-h', '--help', action='store_true',
-#                      help = 'Muestra este mensaje de ayuda')
-#    parser.add_argument('-q', '--quiet', action='store_true',
-#                      help = 'No mostrar nada por pantalla')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                      help = 'Ver mensajes de depuración')
+    parser.add_argument('-q', '--quiet', action='store_true',
+                      help = 'No mostrar nada por pantalla')
+    parser.add_argument('-h', '--help', action='store_true',
+                      help = 'Muestra este mensaje de ayuda')
     parser.add_argument('-i', '--info', action='store_true',
                       help = 'Mostrar la información del vídeo y salir')
     parser.add_argument('-f', '--force', action='store_true',
@@ -50,6 +52,10 @@ def main():
                       help = 'Solo comprueba la existencia del subtítulo sin descargarlo')
     parser.add_argument('-w', '--web',
                       help = 'Especificar directamente la web en la que buscar')
+    parser.add_argument('-d', '--daemon',
+                      help = 'Ejecutar en segundo plano y autodescargar subtítulos cuando aparezcan videos nuevos')
+    parser.add_argument('-r', '--recursive',
+                      help = 'Descargar subtítulos para los vídeos de subcarpetas')
     parser.add_argument('-l', '--language',
                       help = 'Especificar el idioma -> es: Español de España, lat: Español de Latinoamérica, en: Inglés')
 #    parser.add_argument('-a', '--annotations', action='store_true',
@@ -61,20 +67,33 @@ def main():
     parser.add_argument('videos', nargs='*')
     args = parser.parse_args()
 
-    if args.videos:
+    if args.help:
+        parser.print_help()
+        return 0
+    elif args.videos:
         ret = 0
         for video in args.videos:
-            #TODO: comprobar si video es una carpeta y hacer un for sobre todos los videos            
+            #si es una carpeta
+            #if os.path.isdir(video):
+                #recorrer todos los archivos
+            #si es un video    
             capi = Video(video, args)
             if capi.cargar_datos() == 0:
+                #mostrar en terminal los datos del vídeo como separador
+                cad_separador = 'Vídeo: %s' % (capi.nombre_video + capi.extension)
+                if not args.quiet:
+                    print("%s\n%s" % (cad_separador, separador(cad_separador)))
+                
+                #OPCIÓN -i: mostrar info sobre el vídeo
                 if args.info:
-                    print capi
+                    capi.notificar(capi.__str__())
                     continue
                 
                 #OPCIÓN -w: hacer un diccionario de webs que se pueden usar
                 #si lo que se pasa por aprámetro no está ahi, mensaje y salir
                 #si está, ejecutar esa descarga
                 #si no se especifica, probar primero de subtitulos.es y luego de addic7ed
+                #ESTO ES LO QUE MÁS URGE REFACTORIZAR
                 if args.web:
                     #listado de páginas disponibles
                     webs = ('http://subtitulos.es', 'http://www.addic7ed.com')
@@ -84,19 +103,25 @@ def main():
                             return capi.descargar_sub_subtitulos_es()
                         else:
                             return capi.descargar_sub_addic7ed()
-                    print('Página web no reconocida por el programa')
-                    return 1
+                    capi.notificar('Sitio web no reconocida por el programa')
+                    ret = 2
 
                 #probar a descargar de subtitulos.es primero. si no, de addic7ed
                 subs_es = capi.descargar_sub_subtitulos_es()
                 add = 0
                 if subs_es == 1:
                     add = capi.descargar_sub_addic7ed()
-                if subs_es == 2 or add == 2:
+
+                if add == 1:
+                    ret = 1
+                elif subs_es == 2 or add == 2:
                     ret = 2
-                ret = 0
+                else:
+                    ret = 0
             else:
                 ret = 3
+        if ret == 1:
+            capi.notificar('No se han encontrado subtítulos para %s' % capi.datos())
         return ret
     else:
         parser.print_help()
