@@ -25,9 +25,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
+#para lanzarlo desde consola
 entry_points = {
     'console_scripts' : [
-        'subtle = subtle.__main__:main'
+        'subtle = __main__:main'
     ]
 }
 
@@ -39,16 +40,17 @@ config = dict(
     url='digitalwaste.wordpress.com',
     download_url='http://fmacia.github.com/subtle/',
     author_email='fjmaciaespin@gmail.com',
-    version='0.3',
+    version='0.5',
     install_requires=['beautifulsoup4', 'guessit'],
     entry_points=entry_points,
-    packages=['subtle'],
+    #packages=['subtle', 'subtle.webs', 'bs4', 'guessit', 'guessit.transfo'],
+    packages=['subtle', 'subtle.webs'],
     include_package_data=True,
     name='subtle',
     license='GPL v3',
-    long_description= open('README.rst').read(),
-    platforms= ['UNIX', 'Windows'],
-    classifiers= 
+    long_description=open('README.rst').read(),
+    platforms=['UNIX', 'Windows'],
+    classifiers=
         [
             'Development Status :: 3 - Alpha',
             'Environment :: Console',

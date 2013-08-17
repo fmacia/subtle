@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #sys.path.insert(0, os.path.abspath('..'))
 
 from nose.tools import *
-from subtle import Video
+from subtle.core import Video
+from subtle.utils import Notificacion
 
 
 def setup():
@@ -39,6 +40,28 @@ def setup():
 def teardown():
     print "TEAR DOWN!"
 
-def test_basic():
-    a = Video('aaa')
-    print "I RAN!"
+#Tests de notificaciones
+def test_Notificacion_comprobar_burbuja():
+    """El notificador se encuentra"""
+    #objeto notificación
+    n = Notificacion()
+    assert n.comprobar_burbuja() == 0
+    
+def test_Notificacion_comprobar_burbuja_error():
+    """El notificador no se encuentra"""
+    #objeto notificación
+    n = Notificacion('notificador_no_existente')
+    assert n.comprobar_burbuja() == 1
+    
+def test_Notificacion_notificar():
+    """Muestra una notificación de prueba"""
+    n = Notificacion()
+    n.n('Hola Don Pepito')
+    
+#FIN tests de notificaciones
+
+#def test_cargar_datos():
+#    """Carga de datos con información válida
+#    debe mostrarse una burbuja de notificación con los datos del vídeo"""
+#    a = Video('Futurama.S07E14.HDTV.x264-EVOLVE', [])
+#    print('a')

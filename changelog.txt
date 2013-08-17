@@ -3,5 +3,5 @@ Version 0.2 (20/02/2013)
 Creada la estructura de archivos, código refactorizado, arreglo de pequeños bugs, añadido soporte para varios archivos a la vez
 Version 0.3 (24/02/2013) 
 	Arreglado el bug de los nombres que no concuerdan en subtitulos.es y controlado el error 404 de las webs, añadidos parámetros a la llamada del programa
-Versión 0.4
-	Añadidos tests, ¿soporte para pelis?, añadidos el resto de los parámetros, añadido log ¿código refactorizado?
+Versión 0.5
+	Código refactorizado, arreglo de bugs, añadido soporte para opensubtitles.org
