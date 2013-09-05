@@ -20,6 +20,7 @@ A partir de las fuentes
 ------------------------
 
 Se necesitan tener instalados los siguientes módulos de python: 'beautifulsoup4', 'guessit'
+Opcionalmente, se necesita watchdog para poder usar le modo de monitorización
 
 (dentro de la carpeta descomprimida)
 $ python2 setup.py install
