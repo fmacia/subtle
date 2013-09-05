@@ -171,8 +171,6 @@ class Video(object):
             if self.args.title:
                 self.renombrar(self.titulo)
 
-            print(self.ruta)
-            print(self.nombre_video)
             archivo = open(os.path.join(self.ruta, '%s.srt' % self.nombre_video), 'wb')
             archivo.write(datos)
             archivo.close()
