@@ -127,7 +127,8 @@ class opensubtitles_org(Web):
         if self.video.buscar_por_hash:
             datos = {'sublanguageid' : self.idioma,
                      'moviehash' : self.video.hash,
-                     'moviebytesize': self.video.bytesize}
+                     #se pasa el tamaño como cadena, si se pasa como número y el archivo es muy grande, salta excepción en xml-rpc
+                     'moviebytesize': unicode(self.video.bytesize)}
         elif self.video.buscar_por_nombre:
             if self.video.tipo == 'episode':
                 datos = {'sublanguageid' : self.idioma,

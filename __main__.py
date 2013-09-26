@@ -56,13 +56,32 @@ def main():
             else:
                 notificacion.n('Se debe introducir una carpeta a monitorizar.')
         else:
-            #funcionamiento normal            
-            for video in args.videos:
-                ret = get_subtitles(video, args)
+            #funcionamiento normal
+            ret = 0
+            for archivo in args.videos:
+                if os.path.isdir(archivo):
+                    #carpeta
+                    lista_archivos = listar_archivos(archivo)
+                    #sacar lista de archivos (funcion recursiva)
+                    for sub_archivo in lista_archivos:
+                        ret = get_subtitles(sub_archivo, args)
+                else:
+                    #archivo
+                    ret = get_subtitles(archivo, args)
         return ret
     else:
         parser.print_help()
         return 0
+
+def listar_archivos(carpeta):
+    """Devuelve una lista con los archivos de una carpeta"""
+    ret = []
+    if os.path.exists(carpeta):
+        for(_, _, archivos) in os.walk(carpeta):
+            ret.extend(archivos)
+    else:
+        print("Carpeta inexistente.")
+    return ret
 
 def monitorizar(args):
     """Monitoriza una carpeta en espera de que aparezcan nuevos archivos"""

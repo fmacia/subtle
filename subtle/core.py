@@ -160,7 +160,6 @@ class Video(object):
             self.buscar_por_nombre = False
         else:
             self.buscar_por_nombre = False
-            self.notificacion.n('No se han podido extraer los datos a partir del nombre.', False)
             
         return 0 if self.buscar_por_nombre == True else 1
     
