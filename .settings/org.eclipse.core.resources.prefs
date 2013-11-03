@@ -1,3 +1,15 @@
 eclipse.preferences.version=1
-encoding//subtle/subtle.py=utf8
+encoding//build/lib/subtle/__main__.py=utf-8
+encoding//build/lib/subtle/main.py=utf-8
+encoding//subtle/__init__.py=utf-8
+encoding//subtle/bin/main.py=utf-8
+encoding//subtle/bin/postinstalacion.py=utf-8
+encoding//subtle/core.py=utf-8
+encoding//subtle/tests/__init__.py=utf-8
+encoding//subtle/tests/test_subtle.py=utf-8
+encoding//subtle/utils.py=utf-8
+encoding//subtle/webs/__init__.py=utf-8
+encoding//subtle/webs/addic7ed_com.py=utf-8
+encoding//subtle/webs/opensubtitles_org.py=utf-8
+encoding//subtle/webs/subtitulos_es.py=utf-8
 encoding/setup.py=utf-8

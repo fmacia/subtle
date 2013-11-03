@@ -33,6 +33,7 @@ except:
     #python3
     import urllib.request, urllib.error, urllib.parse
     python_vers = 3
+
 #import de mis paquetes
 from utils import *
 from watchdog.events import FileSystemEventHandler
@@ -129,6 +130,7 @@ class Video(object):
     
     def guess(self):
         """Extrae los datos del nombre del archivo y los carga en las variables"""
+        #TODO: esto se podria quitar, supongo, es mas que nada una lista de variables
         self.version = None
         self.serie = None
         self.temporada = None

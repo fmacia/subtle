@@ -28,11 +28,11 @@ except ImportError:
 #para lanzarlo desde consola
 entry_points = {
     'console_scripts' : [
-        'subtle = __main__:main'
+        'subtle = subtle.bin.main:main'
     ]
 }
 
-#TODO: en scripts meter un sh para el desktop (si es root en usr share)
+#TODO: en scripts meter un sh para el .desktop (si es root en usr share)
 
 config = dict(
     description='Descargador automático de subtítulos',
@@ -41,10 +41,10 @@ config = dict(
     download_url='http://fmacia.github.com/subtle/',
     author_email='fjmaciaespin@gmail.com',
     version='0.5',
-    install_requires=['beautifulsoup4', 'guessit'],
+    install_requires=['beautifulsoup4', 'guessit', 'watchdog'],
     entry_points=entry_points,
-    #packages=['subtle', 'subtle.webs', 'bs4', 'guessit', 'guessit.transfo'],
-    packages=['subtle', 'subtle.webs'],
+    #packages=['subtle', 'subtle.webs', 'subtle.bin', 'bs4', 'guessit', 'guessit.transfo'],
+    packages=['subtle', 'subtle.webs', 'subtle.bin'],
     include_package_data=True,
     name='subtle',
     license='GPL v3',
@@ -65,7 +65,7 @@ config = dict(
             'Topic :: Software Development :: Libraries :: Python Modules',
             
         ],
-    scripts=['postinstalacion.py']
+    scripts=['/bin/postinstalacion.py']
     )
 
 setup(**config)

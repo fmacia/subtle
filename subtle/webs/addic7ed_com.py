@@ -21,10 +21,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from __future__ import unicode_literals
-from bs4 import BeautifulSoup
+
 import re
 
+from bs4 import BeautifulSoup
 from subtle.core import Web
+
 
 class addic7ed_com(Web):
     def __init__(self, video):
