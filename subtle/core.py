@@ -85,7 +85,9 @@ class Web(object):
     def comprobar_version(self, version_video, version_web):
         """Comprueba si la versión de la web es la misma que la del archivo y 
         las equivalencias entre versiones"""
-        if version_video.lower() in ('lol', 'sys', 'dimension', 'afg'):
+	if not version_video:
+	    version_a_buscar = 'lol|sys|dimension|afg|xii|immerse|asap'
+        elif version_video.lower() in ('lol', 'sys', 'dimension', 'afg'):
             version_a_buscar = 'lol|sys|dimension|afg'
         elif version_video.lower() in ('xii', 'immerse', 'asap'):
             version_a_buscar = 'xii|immerse|asap'
