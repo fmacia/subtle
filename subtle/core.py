@@ -236,6 +236,7 @@ class Video(object):
 
     def hashFile(self):
         """Crea el hash de un archivo, para buscar en Opensubtitles (código cogido de su página y adaptado)"""
+        #@see http://trac.opensubtitles.org/projects/opensubtitles/wiki/HashSourceCodes
         #por alguna razón una división de enteros me devuelve un float...
         import struct
         try:
