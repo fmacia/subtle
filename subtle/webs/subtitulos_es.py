@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Copyright 2013 Francisco Jesús Macía Espín <fjmaciaespin@gmail.com>
 
@@ -84,14 +84,16 @@ class subtitulos_es(Web):
                 self.video.titulo = re.sub('.* - ', '', sopa_episodio.find('h1', {'id' : 'cabecera-subtitulo'}).text)
             versiones = sopa_episodio.find_all('div', {'id' : 'version'})
             for version in versiones:
+                print(version)
                 #extraer datos
-                #versión
-                version_web = version.find('p', {'class' : 'title-sub'}).text                
+                #versión, eliminando posibles líneas en blanco
+                version_web = ''.join(version.find('p', {'class' : 'title-sub'}).text.splitlines())
+
                 if self.comprobar_version(self.video.version, version_web):
                     #idiomas
-                    idiomas = version.find_all('ul', {'class' : 'sslist'})
+                    idiomas = version.find_all('li', {'class' : 'li-idioma'})
                     for idioma in idiomas:
-                        idioma_web = idioma.find('strong').text
+                        idioma_web = idioma.text
                         #if re.search("%s" % self.idioma, idioma_web):
                         if idioma_web == self.idioma:
                             completado = porcentaje_completado = idioma.find('li', {'class' : 'li-estado green'})

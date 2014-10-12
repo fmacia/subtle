@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Copyright 2013 Francisco Jesús Macía Espín <fjmaciaespin@gmail.com>
 
@@ -44,34 +44,35 @@ def main():
     parser = argumentos()
     args = parser.parse_args()
     
-    ico = ruta_icono()
-    notificacion = Notificacion(titulo = nombre_programa, icono = ico)
+    video = Video(args)
     
     if args.videos:
         #OPCIÓN -d: monitorizar carpeta
         if args.daemon:
             if os.path.isdir(args.videos[0]):
-                notificacion.n('Monitorizando carpeta %s.' % args.videos[0].decode('utf-8'), kwargs=args.__dict__)
+                video.notificacion.n('Monitorizando carpeta %s.' % args.videos[0].decode('utf-8'), kwargs=args.__dict__)
                 ret = monitorizar()
                 if ret == 0:
-                    notificacion.n('Finalizando monitorización.')
+                    video.notificacion.n('Finalizando monitorización.')
                 else:
-                    notificacion.n('No se ha podido monitorizar la carpeta (se requiere la librería python-watchdog).')
+                    video.notificacion.n('No se ha podido monitorizar la carpeta (se requiere la librería python-watchdog).', False, 40)
             else:
-                notificacion.n('Se debe introducir una carpeta a monitorizar.')
+                video.notificacion.n('Se debe introducir una carpeta a monitorizar.')
         else:
             #funcionamiento normal
             ret = 0
             for archivo in args.videos:
+                #TODO: hacer que no sea recursivo por defecto (que haya que poner opcion -r)
+                #TODO: tambien hacer que sea recursivo de verdad -> crear funcion listar archivos (recursiva)
                 if os.path.isdir(archivo):
                     #carpeta
                     lista_archivos = listar_archivos(archivo)
                     #sacar lista de archivos (funcion recursiva)
                     for sub_archivo in lista_archivos:
-                        ret = get_subtitles(sub_archivo, args)
+                        ret = get_subtitles(video, sub_archivo, args)
                 else:
                     #archivo
-                    ret = get_subtitles(archivo, args)
+                    ret = get_subtitles(video, archivo, args)
         return ret
     else:
         parser.print_help()
@@ -142,14 +143,16 @@ def argumentos():
     parser.add_argument('videos', nargs = '*')
     return parser
     
-def get_subtitles(archivo, args):
+def get_subtitles(video, archivo, args):
     """Busca subtítulos para un archivo"""
     
     ret = None
-    #crear objeto a partir del archivo
-    video = Video(archivo, args)
+    #extraer los datos a partir del archivo
+    video.cargar_archivo(archivo)
     #mostrar en terminal el nombre del vídeo como separador
-    video.notificacion.n(separador("\nVídeo: %s" % (video.nombre_video + video.extension)), False)
+    print('\n')
+    video.notificacion.n("Vídeo: %s" % (video.nombre_video + video.extension), False)
+    video.notificacion.n(separador("Vídeo: %s" % (video.nombre_video + video.extension), pegar = False), False, -1)
     
     if not args.info:
         if args.force or not os.path.exists(os.path.join(video.ruta, '%s.srt' % video.nombre_video)):

@@ -25,18 +25,13 @@ import os
 import re
 import sys
 import guessit
-try:
-    #python2
-    import urllib2
-    python_vers = 2
-except:
-    #python3
-    import urllib.request, urllib.error, urllib.parse
-    python_vers = 3
+#import i18n
+#_ = i18n.language.ugettext #use ugettext instead of getttext to avoid unicode errors
+
+import urllib.request, urllib.error, urllib.parse
 
 #import de mis paquetes
-from utils import *
-from watchdog.events import FileSystemEventHandler
+from subtle.utils import *
 
 class Web(object):
     """Métodos relacionados con las webs, clase padre"""
@@ -46,24 +41,26 @@ class Web(object):
         #TODO comprobar qué devuelve el read de una url vacía
         #TODO ver qué pasa cuando no hay internet
         try:
-            if python_vers == 2:
-                html = urllib2.urlopen(url).read()
-            else:
-                html = urllib.request.urlopen(url).read()
+            peticion = urllib.request.Request(url)
+            #hay que decir que venimos de la propia página o algunos sitios no descargarán
+            peticion.add_header('Referer', self.sitio)
+            #mentimos sobre el user agent para que no piense que somos un bot
+            peticion.add_header('User-Agent', 'Mozilla/5.0')
+            #enviamos la petición
+            html = urllib.request.urlopen(peticion).read()
             return html
-        except urllib2.HTTPError as e:
+
+        except urllib.error.HTTPError as e:
             if e.code == 404:
-                self.video.notificacion.n('No existe la página que se ha buscado.')
-        except urllib2.URLError as e:
-            self.video.notificacion.n('No se ha podido conectar a %s.' % self.sitio, False)
+                self.video.notificacion.n('No existe la página %s' % self.sitio, False)
+            elif e.code == 403:
+                self.video.notificacion.n('Acceso no permitido a %s' % self.sitio, False)
+            else:
+                self.video.notificacion.n('Ha habido un problema al conectar a %s' % self.sitio, False)
             return False
 
-    def descargar(self):
-        #TODO: soporte de python 3
-        request = urllib2.Request(self.link)
-        #hay que decir que venimos de la propia página o no descargará
-        request.add_header('Referer', self.sitio)
-        subs = self.abrir_url(request)
+    def descargar(self, enlace=None):
+        subs = self.abrir_url(self.link)
         if subs:
             self.video.guardar_archivo(subs)
             return 0
@@ -112,17 +109,22 @@ def ruta_icono():
 
 class Video(object):
     """Métodos relacionados con los archivos"""
-    def __init__(self, archivo, args):
+    def __init__(self, args):
         #se usa el decode para que no pete con las tildes (se recibe como str porque viene del argparser)
         self.args = args
-        self.archivo = archivo.decode('utf-8')
+        self.notificacion = Notificacion(titulo = 'Subtle', icono = ruta_icono())
+    
+    def cargar_archivo(self, archivo):
+        """Obtener los datos del nuevo archivo"""
+        #se usa el decode para que no pete con las tildes (se recibe como str porque viene del argparser)
+        #TODO: convertir a unicode para que no pete con las tildes
+        #self.archivo = archivo.decode('utf-8')
+        self.archivo = archivo
         self.ruta_original = os.path.dirname(self.archivo)
         #OPCION: -F - Elegir la ruta de descarga                 
         self.ruta = self.ruta_original if not self.args.folder else self.args.folder
         self.nombre_video, self.extension = os.path.splitext(os.path.basename(self.archivo))
-        #icono
-        ico = ruta_icono()
-        self.notificacion = Notificacion(titulo = self.nombre_video + self.extension, icono = ico)
+        self.notificacion.set_titulo(self.nombre_video + self.extension)
         #sacar hash y bytesize del archivo
         self.hashfile()
         #rellenar datos del archivo
@@ -228,7 +230,7 @@ class Video(object):
         try:
             return zlib.decompress(archivo, 16+zlib.MAX_WBITS)
         except:
-            self.notificacion.n('No se ha podido descomprimir el archivo')
+            self.notificacion.n('No se ha podido descomprimir el archivo.', False, 40)
             return 0
 
     def hashfile(self):
@@ -287,27 +289,32 @@ class Video(object):
                     self.version, self.codec,
                     self.titulo, 
                     self.formato, self.tamano)
-            variables = map(intercambiar, variables)
+            variables = list(map(intercambiar, variables))
             datos = ("Ruta del archivo: %s\nNombre del vídeo: %s\nExtensión: %s\nTipo: %s\n"
             "Serie: %s\nTemporada: %s\nEpisodio: %s\nVersión: %s\nCódec: %s\nNombre del episodio: %s\n"
             "Formato: %s\nTamaño pantalla: %s\n") % tuple(variables)
         #película
         elif self.tipo == 'movie':
             variables = (self.ruta, self.nombre_video, self.extension, self.titulo)
-            variables = map(intercambiar, variables)
+            variables = list(map(intercambiar, variables))
             datos = "Ruta del archivo: %s\nNombre del vídeo: %s\nExtensión: %s\nTipo de vídeo: Película\nTítulo: %s\n" % tuple(variables)
         #desconocido
         else:
             datos = "%s\nNo se han podido extraer los datos." % self.archivo
         return datos
 
-class AddedHandler(FileSystemEventHandler):
-    """Controla qué hacer cuando aparecen nuevos archivos"""
-    def __init__(self, args):
-        self.args = args
-
-    def on_created(self, event):
-        get_subtitles(event.src_path, self.args)
+try:
+    from watchdog.events import FileSystemEventHandler
+    class AddedHandler(FileSystemEventHandler):
+        """Controla qué hacer cuando aparecen nuevos archivos"""
+        def __init__(self, args):
+            self.args = args
     
-    def on_moved(self, event):
-        get_subtitles(event.dest_path, self.args)
+        def on_created(self, event):
+            get_subtitles(event.src_path, self.args)
+        
+        def on_moved(self, event):
+            get_subtitles(event.dest_path, self.args)
+    MONITORIZACION = True
+except:
+    MONITORIZACION = False
