@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Copyright 2013 Francisco Jesús Macía Espín <fjmaciaespin@gmail.com>
 
@@ -24,7 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
 import os
-import sqlite3
+import logging
+#import i18n
+#_ = i18n.language.ugettext #use ugettext instead of getttext to avoid unicode errors
 
 def separador(cadena, separador = '=', pegar = True, doble_fila = False):
     """Añade una línea de caracteres para destacar / separar una cadena
@@ -40,7 +42,7 @@ def separador(cadena, separador = '=', pegar = True, doble_fila = False):
         cadena = cadena + "\n" + '%s' % separador * len(cadena)
         cadena += "\n"
         return cadena
-    return separador * len(cadena)
+    return separador * len(cadena) + "\n"
 
 def recortar_url(url):
     """Elimina http://www. de una url si lo tiene, y cambia los puntos por guiones bajos.
@@ -71,35 +73,18 @@ def intercambiar(variable, reemplazo = 'Desconocido'):
     else:
         return reemplazo
 
-# def notificar(mensaje, burbuja = True, titulo = '', icono = '', kwargs = {}):
-#     """Crea burbujas de notificación e imprime por pantalla
-#     
-#     :param mensaje:
-#             Mensaje a mostrar.
-#     :param titulo:
-#             Título del mensaje.
-#     :param icono:
-#             Ruta del icono para la notificación.
-#     :param kwargs:
-#             Otros argumentos.
-#     """
-#     
-#     quiet = kwargs.get('quiet', False)
-#     verbose = kwargs.get('verbose', False)
-#     
-#     if not quiet:    
-#         if burbuja or verbose:
-#             #burbuja de notificación
-#             from distutils.spawn import find_executable
-#             
-#             notificador = 'notify-send'
-#             #comprobar que se pueden mandar notificaciones
-#             if find_executable(notificador) is not None:
-#                 import subprocess
-#                 subprocess.Popen([notificador, '-i', icono, titulo, mensaje])
-#         
-#         #mostrar texto por consola
-#         print(mensaje)
+def comprobar_carpeta_configuracion(crear = True):
+    """
+    Comprueba la existencia de la carpeta de configuración, con la opción de crearla si no existe
+    """
+    ruta_home = os.path.expanduser("~")
+    return True
+
+def ruta_config():
+    #TODO: esto tiene que ir en otro sitio, y que lo saque solo
+    #LINUX
+    return '/home/fran/.config/subtle/log'
+    #WINDOWS
 
 class Notificacion(object):
     """Crea burbujas de notificación, guarda el log e imprime por pantalla"""
@@ -123,18 +108,35 @@ class Notificacion(object):
         else:
             self.mostrar_burbuja = False
             self.registro = False
+        
+        #log
+        self.logueable = comprobar_carpeta_configuracion()
+        if self.logueable:
+            self.logger = logging.getLogger('subtle')
+            handler = logging.FileHandler(ruta_config())
+            formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.setLevel(10)
     
-    def notificar(self, mensaje, mostrar_burbuja = True):
+    def set_titulo(self, titulo):
+        """Modifica el título de la notificación"""
+        self.titulo = titulo
+    
+    def notificar(self, mensaje, mostrar_burbuja = True, nivel_log = 20):
         """Principal, lanza las tres funciones"""
         #TODO: log
         if not self.quiet:
             if (self.mostrar_burbuja and mostrar_burbuja) or (self.mostrar_burbuja and self.verbose):
                 self.burbuja(mensaje)
-            print(mensaje)
+            print((mensaje))
+        #log
+        if self.logueable and nivel_log >= 0:
+            self.logger.log(nivel_log, mensaje)
         
-    def n(self, mensaje, mostrar_burbuja = True):
+    def n(self, mensaje, mostrar_burbuja = True, nivel_log = 20):
         """Máscara de notificar"""
-        self.notificar(mensaje, mostrar_burbuja)
+        self.notificar(mensaje, mostrar_burbuja, nivel_log)
     
     def burbuja(self, mensaje):
         """Crea una burbuja de notificación"""
@@ -182,6 +184,8 @@ def subtle_extensiones():
     #TODO: quitar de aqui
     return ('.mp4', '.avi', '.mkv')
 
+#TODO: mover a otro archivo?
+import sqlite3
 class Bbdd:
     """Abstrae la base de datos sqlite"""
     #TODO: al cambiar notificar a clase, se ha roto la funcionalidad. arreglar
@@ -227,7 +231,7 @@ class Bbdd:
 
         except Exception as e:
             notificar('Ha ocurrido un error al interactuar con la base de datos')
-            print e
+            print(e)
             self.con.rollback()
             return 1
         c.close()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # Copyright 2013 Francisco Jesús Macía Espín <fjmaciaespin@gmail.com>
 
@@ -104,8 +104,8 @@ class opensubtitles_org(Web):
         return idioma
         
     def conectar(self):
-        import xmlrpclib
-        return xmlrpclib.ServerProxy(self.servidor)
+        import xmlrpc.client
+        return xmlrpc.client.ServerProxy(self.servidor)
     
     def serverinfo(self):
         return self.conexion.ServerInfo()
@@ -128,7 +128,7 @@ class opensubtitles_org(Web):
             datos = {'sublanguageid' : self.idioma,
                      'moviehash' : self.video.hash,
                      #se pasa el tamaño como cadena, si se pasa como número y el archivo es muy grande, salta excepción en xml-rpc
-                     'moviebytesize': unicode(self.video.bytesize)}
+                     'moviebytesize': str(self.video.bytesize)}
         elif self.video.buscar_por_nombre:
             if self.video.tipo == 'episode':
                 datos = {'sublanguageid' : self.idioma,
@@ -189,6 +189,6 @@ class opensubtitles_org(Web):
                 ret = 1
             self.logout()
         else:
-            self.video.notificacion.n('No se ha podido conectar a %s' % self.sitio, False)
+            self.video.notificacion.n('No se ha podido conectar a %s' % self.sitio, False, 40)
             ret = 1
         return ret
