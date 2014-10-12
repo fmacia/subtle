@@ -43,7 +43,6 @@ def main():
 
     parser = argumentos()
     args = parser.parse_args()
-    
     video = Video(args)
     
     if args.videos:
