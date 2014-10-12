@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright 2013 Francisco Jesús Macía Espín <fjmaciaespin@gmail.com>
 
@@ -65,7 +65,7 @@ config = dict(
             'Topic :: Software Development :: Libraries :: Python Modules',
             
         ],
-    scripts=['/bin/postinstalacion.py']
+    scripts=['subtle/bin/postinstalacion.py']
     )
 
 setup(**config)
