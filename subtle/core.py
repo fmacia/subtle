@@ -66,6 +66,7 @@ class Web(object):
         else:
             return 1
 
+    #funciones abstractas, no es que estén por hacer
     def sacar_id(self):
         pass
 

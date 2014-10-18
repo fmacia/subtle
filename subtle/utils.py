@@ -73,18 +73,56 @@ def intercambiar(variable, reemplazo = 'Desconocido'):
     else:
         return reemplazo
 
-def comprobar_carpeta_configuracion(crear = True):
-    """
-    Comprueba la existencia de la carpeta de configuración, con la opción de crearla si no existe
-    """
-    ruta_home = os.path.expanduser("~")
-    return True
+def check_os():
+    """Comprueba el so operativo que se está usando"""
+    import platform
+    so = platform.system()
+    #platform.release() -> más detalles, por ejemplo en linux creo que es la versión del kernel
+    if so.lower().startswith('linux'):
+        return 'linux'
+    elif so.lower().startswith('windows'):
+        return 'windows'
+    elif so.lower().startswith('darwin'):
+        return 'mac'
+    else:
+        return 'unknown'
 
-def ruta_config():
-    #TODO: esto tiene que ir en otro sitio, y que lo saque solo
-    #LINUX
-    return '/home/fran/.config/subtle/log'
-    #WINDOWS
+def comprobar_log(crear = True):
+    """
+    Comprueba la existencia del archivo de log y si es modificable (para escribir en él).
+    En caso de no existir, intentará crearlo.
+    Devuelve la ruta del archivo en caso afirmativo, false si no puede escribir
+    """
+    #TODO: enganche para ruta personalizada
+
+    #ruta a la HOME independiente del so
+    ruta_home = os.path.expanduser("~")
+    so = check_os()
+
+    if so == 'linux':
+        ruta_log = os.path.join(ruta_home, '.config/subtle/log')
+    else: #TODO: rutas de windows y mac
+        return False
+
+    if os.path.isfile(ruta_log):    #comprobar si es un archivo (lo cual de paso comprueba si existe)
+        if os.access(ruta_log, os.W_OK):    #comprobar si se puede escribir
+            return ruta_log
+        else: #no se puede escribir
+            #TODO: print diciendo que no se puede escribir el log a no ser que se pase la -q (creo que hace falta hacer args global)
+            return False
+    elif crear == True:   #no existe, intentar crearlo
+        try:
+            basedir = os.path.dirname(ruta_log)
+            if not os.path.exists(basedir):
+                os.makedirs(basedir)
+            archivo = open(ruta_log, 'wb')
+            archivo.close()
+            return ruta_log
+        except IOError as e:
+            #TODO: mensaje diciendo que no se puede crear el log
+            return False
+    else:
+        return False
 
 class Notificacion(object):
     """Crea burbujas de notificación, guarda el log e imprime por pantalla"""
@@ -104,20 +142,22 @@ class Notificacion(object):
                 self.icono = icono
                 self.urgencia = urgencia
                 self.tiempo = tiempo
-            #TODO: log
         else:
             self.mostrar_burbuja = False
             self.registro = False
         
-        #log
-        self.logueable = comprobar_carpeta_configuracion()
-        if self.logueable:
+        #comenzar log
+        ruta_log = comprobar_log()
+        if ruta_log:
+            self.logueable = True
             self.logger = logging.getLogger('subtle')
-            handler = logging.FileHandler(ruta_config())
+            handler = logging.FileHandler(ruta_log)
             formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
             self.logger.setLevel(10)
+        else:
+            self.logueable = False
     
     def set_titulo(self, titulo):
         """Modifica el título de la notificación"""
@@ -125,7 +165,6 @@ class Notificacion(object):
     
     def notificar(self, mensaje, mostrar_burbuja = True, nivel_log = 20):
         """Principal, lanza las tres funciones"""
-        #TODO: log
         if not self.quiet:
             if (self.mostrar_burbuja and mostrar_burbuja) or (self.mostrar_burbuja and self.verbose):
                 self.burbuja(mensaje)
@@ -175,7 +214,7 @@ class Notificacion(object):
         else:
             self.mostrar_burbuja = False
             return 1
-    
+
     def registro(self):
         #TODO: loguear
         pass

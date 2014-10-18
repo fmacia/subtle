@@ -40,7 +40,6 @@ class addic7ed_com(Web):
 
     def idioma(self, idioma):
         """Configura el idioma para que sea aceptado por la web"""
-        #TODO: convertir en diccionario, poner sus respectivos numeros
         idiomas = {'en' : 1,
                    'it' : 7,
                    'pt' : 9,
