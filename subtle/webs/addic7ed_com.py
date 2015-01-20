@@ -87,7 +87,7 @@ class addic7ed_com(Web):
                 self.id_serie = re.sub('/show/', '' , result.a['href'])
                 return True
             else:
-                #TODO: opcion 2, buscar en indice de series
+                #TODO: opcion 2, buscar en indice de series. de hecho, esta deberia ser la opcion 1
                 return False
         else:
             self.id_serie = 0

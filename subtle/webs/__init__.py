@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from subtle.webs.opensubtitles_org import opensubtitles_org
 from subtle.webs.addic7ed_com import addic7ed_com
 from subtle.webs.subtitulos_es import subtitulos_es
+from subtle.webs.yifysubtitles_com import yifysubtitles_com
 
 #array de webs
-sitios = ['opensubtitles_org', 'addic7ed_com', 'subtitulos_es']
+sitios = ['opensubtitles_org', 'addic7ed_com', 'subtitulos_es', 'yifysubtitles_com']

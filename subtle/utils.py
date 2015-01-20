@@ -170,7 +170,7 @@ class Notificacion(object):
                 self.burbuja(mensaje)
             print((mensaje))
         #log
-        if self.logueable and nivel_log >= 0:
+        if self.logueable and nivel_log >= 0:   #TODO: por ahora loguea todo para debuguear, cambiar
             self.logger.log(nivel_log, mensaje)
         
     def n(self, mensaje, mostrar_burbuja = True, nivel_log = 20):

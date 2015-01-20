@@ -35,7 +35,7 @@ from subtle.utils import *
 class Web(object):
     """Métodos relacionados con las webs, clase padre"""
     
-    def abrir_url(self, url):
+    def abrir_url(self, url, decode = False):
         """Lee el contenido de una url"""
         #TODO comprobar qué devuelve el read de una url vacía
         #TODO ver qué pasa cuando no hay internet
@@ -46,7 +46,13 @@ class Web(object):
             #mentimos sobre el user agent para que no piense que somos un bot
             peticion.add_header('User-Agent', 'Mozilla/5.0')
             #enviamos la petición
-            html = urllib.request.urlopen(peticion).read()
+            html = urllib.request.urlopen(peticion)
+
+            if decode == True:
+                encoding = html.headers.get_content_charset()
+                html = html.read().decode(encoding)
+            else:
+                html = html.read()
             return html
 
         except urllib.error.HTTPError as e:
@@ -169,14 +175,14 @@ class Video(object):
             
         return 0 if self.buscar_por_nombre == True else 1
     
-    def guardar_archivo(self, datos):
+    def guardar_archivo(self, datos, extension = '.srt'):
         """Crea un archivo a partir de los datos de una variable"""
         try:
             #renombrar archivo de vídeo
             if self.args.title:
                 self.renombrar(self.titulo)
 
-            archivo = open(os.path.join(self.ruta, '%s.srt' % self.nombre_video), 'wb')
+            archivo = open(os.path.join(self.ruta, '%s%s' % (self.nombre_video, extension)), 'wb')
             archivo.write(datos)
             archivo.close()
             self.notificacion.n('Guardando archivo de subtítulos.')
